@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recon/Sub — Subdomain Enumeration</title>
+<style>
+  :root{
+    --bg:#0B0F14;
+    --panel:#11161D;
+    --panel-2:#161C25;
+    --line:#232B36;
+    --text:#DCE3EA;
+    --text-dim:#7C8899;
+    --found:#4FD6B0;
+    --found-dim:#1E3A34;
+    --warn:#E8A33D;
+    --danger:#E5534B;
+    --link:#6FA8FF;
+    --mono: 'IBM Plex Mono', 'Consolas', monospace;
+    --sans: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  body{min-height:100vh;}
+  a{color:var(--link);}
+
+  .wrap{max-width:960px;margin:0 auto;padding:28px 20px 60px;}
+
+  /* header */
+  .top{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:6px;flex-wrap:wrap;}
+  .brand{display:flex;align-items:baseline;gap:10px;}
+  .brand .mark{font-family:var(--mono);color:var(--found);font-size:14px;letter-spacing:0.5px;}
+  h1{font-family:var(--sans);font-weight:600;font-size:22px;margin:0;color:var(--text);}
+  .sub{color:var(--text-dim);font-size:13px;margin:4px 0 22px;line-height:1.5;max-width:60ch;}
+
+  .notice{
+    border:1px solid #3a2e1c; background:#1c160c; color:#e8c27f;
+    border-radius:6px; padding:10px 14px; font-size:12.5px; line-height:1.5;
+    margin-bottom:22px;
+  }
+  .notice b{color:var(--warn);}
+
+  /* controls */
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:18px;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;}
+  label{display:block;font-size:11.5px;color:var(--text-dim);margin-bottom:6px;}
+  input[type=text], textarea{
+    width:100%;background:var(--bg);border:1px solid var(--line);color:var(--text);
+    font-family:var(--mono);font-size:13.5px;padding:9px 11px;border-radius:6px;outline:none;
+  }
+  input[type=text]:focus, textarea:focus{border-color:var(--link);}
+  .field{flex:1 1 260px;}
+  .field.small{flex:0 1 160px;}
+
+  button{
+    font-family:var(--sans);font-weight:600;font-size:13.5px;border-radius:6px;border:1px solid transparent;
+    padding:10px 16px;cursor:pointer;transition:filter .1s ease;
+  }
+  button:active{filter:brightness(0.9);}
+  button:disabled{opacity:0.45;cursor:not-allowed;}
+  .btn-primary{background:var(--found);color:#06231C;}
+  .btn-danger{background:transparent;border:1px solid var(--danger);color:var(--danger);}
+  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--text);}
+  .btn-ghost:hover{border-color:var(--text-dim);}
+
+  .adv{margin-top:14px;}
+  details summary{cursor:pointer;color:var(--text-dim);font-size:12.5px;}
+  details[open] summary{color:var(--text);}
+  details .adv-body{margin-top:10px;}
+  .hint{font-size:11px;color:var(--text-dim);margin-top:5px;}
+
+  /* stats */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:18px;}
+  .stat{background:var(--panel);padding:14px 16px;}
+  .stat .num{font-family:var(--mono);font-size:20px;color:var(--text);}
+  .stat .lbl{font-size:11px;color:var(--text-dim);margin-top:2px;}
+  .stat.found .num{color:var(--found);}
+
+  /* progress */
+  .progress-wrap{margin-bottom:18px;display:none;}
+  .progress-wrap.active{display:block;}
+  .bar-track{height:6px;background:var(--panel-2);border-radius:4px;overflow:hidden;border:1px solid var(--line);}
+  .bar-fill{height:100%;background:var(--found);width:0%;transition:width .15s ease;}
+  .progress-label{font-family:var(--mono);font-size:11.5px;color:var(--text-dim);margin-top:6px;display:flex;justify-content:space-between;}
+
+  /* console */
+  .console{
+    background:#070A0D;border:1px solid var(--line);border-radius:8px;
+    font-family:var(--mono);font-size:12.5px;line-height:1.6;
+    height:150px;overflow-y:auto;padding:12px 14px;margin-bottom:18px;
+    display:none;
+  }
+  .console.active{display:block;}
+  .console .l{color:var(--text-dim);white-space:pre-wrap;word-break:break-all;}
+  .console .l.hit{color:var(--found);}
+  .console .l.err{color:var(--danger);}
+
+  /* results */
+  .results-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:10px;}
+  .results-head h2{font-size:14px;margin:0;color:var(--text);font-weight:600;}
+  .export-row{display:flex;gap:8px;}
+  .export-row button{padding:7px 12px;font-size:12px;}
+
+  table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px;}
+  thead th{
+    text-align:left;color:var(--text-dim);font-weight:500;font-size:11px;
+    border-bottom:1px solid var(--line);padding:8px 10px;
+  }
+  tbody td{padding:8px 10px;border-bottom:1px solid var(--line);}
+  tbody tr:hover{background:var(--panel-2);}
+  .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--found);margin-right:7px;}
+  .type-tag{color:var(--text-dim);}
+  .copy-cell{text-align:right;}
+  .copy-cell button{background:none;border:none;color:var(--text-dim);font-size:11px;padding:2px 6px;}
+  .copy-cell button:hover{color:var(--link);}
+
+  .empty{color:var(--text-dim);font-size:12.5px;padding:20px 4px;font-family:var(--mono);}
+
+  .wordlist-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+  .wordlist-tags span{
+    font-family:var(--mono);font-size:11px;color:var(--text-dim);
+    background:var(--panel-2);border:1px solid var(--line);border-radius:4px;padding:2px 6px;
+  }
+
+  footer{margin-top:34px;color:var(--text-dim);font-size:11.5px;line-height:1.6;border-top:1px solid var(--line);padding-top:16px;}
+  footer code{font-family:var(--mono);background:var(--panel-2);padding:1px 5px;border-radius:3px;}
+
+  @media (max-width:640px){
+    .stats{grid-template-columns:repeat(2,1fr);}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="brand">
+      <span class="mark">$ recon/sub</span>
+    </div>
+  </div>
+  <h1>Subdomain Enumeration</h1>
+  <p class="sub">Runs entirely in your browser. Candidate names are checked against a public DNS-over-HTTPS resolver — no server, no logging on our end, nothing installed.</p>
+
+  <div class="notice">
+    <b>Authorized use only.</b> Only run this against a domain you own, or one you have explicit written permission to assess. Enumerating subdomains of a domain you don't control, without permission, can violate computer-misuse law even though every technique here is passive and public.
+  </div>
+
+  <div class="panel">
+    <div class="row">
+      <div class="field">
+        <label for="domain">Target domain</label>
+        <input type="text" id="domain" placeholder="example.com" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="field small">
+        <label for="resolver">DNS resolver</label>
+        <select id="resolver" style="width:100%;background:var(--bg);border:1px solid var(--line);color:var(--text);font-family:var(--mono);font-size:13.5px;padding:9px 11px;border-radius:6px;">
+          <option value="google">Google DoH</option>
+          <option value="cloudflare">Cloudflare DoH</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="adv">
+      <details id="advDetails">
+        <summary>Wordlist &amp; concurrency options</summary>
+        <div class="adv-body">
+          <label for="wordlist">Candidate wordlist (one per line — defaults to the built-in list of 100 below)</label>
+          <textarea id="wordlist" rows="5" placeholder="Leave blank to use the built-in list, or paste your own..."></textarea>
+          <div class="row" style="margin-top:10px;">
+            <div class="field small">
+              <label for="concurrency">Concurrent lookups</label>
+              <input type="text" id="concurrency" value="8">
+            </div>
+            <div class="field small">
+              <label for="checkTypes">Record types</label>
+              <input type="text" id="checkTypes" value="A,CNAME">
+            </div>
+          </div>
+          <div class="hint">Built-in list includes: <span id="defaultListPreview"></span></div>
+        </div>
+      </details>
+    </div>
+
+    <div class="row" style="margin-top:16px;">
+      <button class="btn-primary" id="startBtn">Start scan</button>
+      <button class="btn-danger" id="stopBtn" disabled>Stop</button>
+      <button class="btn-ghost" id="clearBtn">Clear results</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="num" id="statTarget">—</div><div class="lbl">Target</div></div>
+    <div class="stat"><div class="num" id="statTested">0</div><div class="lbl">Candidates tested</div></div>
+    <div class="stat found"><div class="num" id="statFound">0</div><div class="lbl">Subdomains found</div></div>
+    <div class="stat"><div class="num" id="statTime">0.0s</div><div class="lbl">Elapsed</div></div>
+  </div>
+
+  <div class="progress-wrap" id="progressWrap">
+    <div class="bar-track"><div class="bar-fill" id="barFill"></div></div>
+    <div class="progress-label"><span id="progressText">0 / 0</span><span id="progressPct">0%</span></div>
+  </div>
+
+  <div class="console" id="console"></div>
+
+  <div class="results-head">
+    <h2>Results</h2>
+    <div class="export-row">
+      <button class="btn-ghost" id="copyAllBtn">Copy list</button>
+      <button class="btn-ghost" id="exportCsvBtn">Export CSV</button>
+      <button class="btn-ghost" id="exportJsonBtn">Export JSON</button>
+    </div>
+  </div>
+
+  <div id="tableWrap">
+    <div class="empty">No results yet. Enter a domain above and start a scan.</div>
+  </div>
+
+  <footer>
+    Lookups run client-side against public DNS-over-HTTPS endpoints (<code>dns.google</code> / <code>cloudflare-dns.com</code>) —
+    this page never sends the target domain to any server we control. Absence of a subdomain in results means it
+    didn't resolve against the tested wordlist and record types, not that no such subdomain exists.
+  </footer>
+
+</div>
+
+<script>
+(function(){
+
+  var DEFAULT_WORDLIST = [
+    "www","mail","webmail","ftp","ftps","sftp","ssh","vpn","remote","admin","administrator","portal",
+    "api","api-docs","dev","development","staging","stage","test","testing","qa","uat","demo","sandbox",
+    "app","apps","mobile","m","secure","login","auth","sso","account","accounts","my","dashboard","panel",
+    "cpanel","webdisk","autodiscover","autoconfig","ns1","ns2","ns3","dns","mx","smtp","pop","pop3","imap",
+    "blog","news","forum","forums","community","support","help","helpdesk","status","docs","wiki","kb",
+    "shop","store","cart","checkout","payments","pay","billing","invoice","crm","erp","hr","jobs","careers",
+    "cdn","static","assets","media","images","img","video","files","download","downloads","upload","uploads",
+    "git","gitlab","github","jenkins","ci","build","jira","confluence","grafana","kibana","monitor",
+    "monitoring","metrics","prometheus","logs","backup","db","database","sql","mysql","postgres","redis",
+    "cache","proxy","gateway","lb","internal","intranet","extranet","partners","vendor","legacy","old",
+    "beta","preview","edge","origin","cdn2","assets2","img2","web","web2","site","sites"
+  ];
+
+  var els = {
+    domain: document.getElementById('domain'),
+    resolver: document.getElementById('resolver'),
+    wordlist: document.getElementById('wordlist'),
+    concurrency: document.getElementById('concurrency'),
+    checkTypes: document.getElementById('checkTypes'),
+    startBtn: document.getElementById('startBtn'),
+    stopBtn: document.getElementById('stopBtn'),
+    clearBtn: document.getElementById('clearBtn'),
+    statTarget: document.getElementById('statTarget'),
+    statTested: document.getElementById('statTested'),
+    statFound: document.getElementById('statFound'),
+    statTime: document.getElementById('statTime'),
+    progressWrap: document.getElementById('progressWrap'),
+    barFill: document.getElementById('barFill'),
+    progressText: document.getElementById('progressText'),
+    progressPct: document.getElementById('progressPct'),
+    console: document.getElementById('console'),
+    tableWrap: document.getElementById('tableWrap'),
+    copyAllBtn: document.getElementById('copyAllBtn'),
+    exportCsvBtn: document.getElementById('exportCsvBtn'),
+    exportJsonBtn: document.getElementById('exportJsonBtn'),
+    defaultListPreview: document.getElementById('defaultListPreview')
+  };
+
+  els.defaultListPreview.textContent = DEFAULT_WORDLIST.slice(0,12).join(', ') + ', … (' + DEFAULT_WORDLIST.length + ' total)';
+
+  var state = {
+    running: false,
+    aborted: false,
+    results: [],   // {subdomain, type, value}
+    tested: 0,
+    total: 0,
+    startTime: 0,
+    timerHandle: null
+  };
+
+  function log(msg, cls){
+    var line = document.createElement('div');
+    line.className = 'l' + (cls ? ' ' + cls : '');
+    line.textContent = msg;
+    els.console.appendChild(line);
+    els.console.scrollTop = els.console.scrollHeight;
+  }
+
+  function cleanDomain(raw){
+    var d = raw.trim().toLowerCase();
+    d = d.replace(/^https?:\/\//, '');
+    d = d.replace(/^www\./, '');
+    d = d.replace(/\/.*$/, '');
+    return d;
+  }
+
+  function isValidDomain(d){
+    return /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$/.test(d);
+  }
+
+  function resolverUrl(which, name, type){
+    if (which === 'cloudflare'){
+      return 'https://cloudflare-dns.com/dns-query?name=' + encodeURIComponent(name) + '&type=' + type;
+    }
+    return 'https://dns.google/resolve?name=' + encodeURIComponent(name) + '&type=' + type;
+  }
+
+  function fetchHeaders(which){
+    return which === 'cloudflare' ? { 'accept': 'application/dns-json' } : {};
+  }
+
+  function queryOne(which, name, type){
+    return fetch(resolverUrl(which, name, type), { headers: fetchHeaders(which) })
+      .then(function(res){
+        if (!res.ok) throw new Error('http ' + res.status);
+        return res.json();
+      })
+      .then(function(json){
+        if (json && json.Status === 0 && json.Answer && json.Answer.length){
+          var vals = json.Answer
+            .filter(function(a){ return a.type === (type === 'A' ? 1 : 5); })
+            .map(function(a){ return a.data; });
+          if (vals.length) return { found: true, type: type, values: vals };
+        }
+        return { found: false };
+      })
+      .catch(function(){ return { found: false, error: true }; });
+  }
+
+  function renderStats(){
+    els.statTested.textContent = state.tested;
+    els.statFound.textContent = state.results.length;
+  }
+
+  function renderTable(){
+    if (!state.results.length){
+      els.tableWrap.innerHTML = '<div class="empty">No matches yet' + (state.running ? ' — scanning…' : '. Enter a domain above and start a scan.') + '</div>';
+      return;
+    }
+    var rows = state.results.map(function(r, i){
+      return '<tr>' +
+        '<td><span class="status-dot"></span>resolved</td>' +
+        '<td>' + escapeHtml(r.subdomain) + '</td>' +
+        '<td class="type-tag">' + r.type + '</td>' +
+        '<td>' + escapeHtml(r.values.join(', ')) + '</td>' +
+        '<td class="copy-cell"><button data-idx="' + i + '" class="rowCopy">copy</button></td>' +
+      '</tr>';
+    }).join('');
+
+    els.tableWrap.innerHTML =
+      '<table><thead><tr>' +
+      '<th>Status</th><th>Subdomain</th><th>Type</th><th>Value</th><th></th>' +
+      '</tr></thead><tbody>' + rows + '</tbody></table>';
+
+    Array.prototype.forEach.call(els.tableWrap.querySelectorAll('.rowCopy'), function(btn){
+      btn.addEventListener('click', function(){
+        var r = state.results[Number(btn.getAttribute('data-idx'))];
+        navigator.clipboard.writeText(r.subdomain).then(function(){
+          btn.textContent = 'copied';
+          setTimeout(function(){ btn.textContent = 'copy'; }, 1200);
+        });
+      });
+    });
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+    });
+  }
+
+  function updateProgress(){
+    var pct = state.total ? Math.round((state.tested / state.total) * 100) : 0;
+    els.barFill.style.width = pct + '%';
+    els.progressText.textContent = state.tested + ' / ' + state.total;
+    els.progressPct.textContent = pct + '%';
+  }
+
+  function tick(){
+    var elapsed = (Date.now() - state.startTime) / 1000;
+    els.statTime.textContent = elapsed.toFixed(1) + 's';
+  }
+
+  async function runScan(){
+    var rawDomain = els.domain.value;
+    var domain = cleanDomain(rawDomain);
+
+    if (!domain || !isValidDomain(domain)){
+      els.domain.style.borderColor = 'var(--danger)';
+      setTimeout(function(){ els.domain.style.borderColor = ''; }, 1500);
+      return;
+    }
+
+    var which = els.resolver.value;
+    var types = els.checkTypes.value.split(',').map(function(t){ return t.trim().toUpperCase(); }).filter(Boolean);
+    if (!types.length) types = ['A'];
+
+    var customList = els.wordlist.value.split('\n').map(function(w){ return w.trim().toLowerCase(); }).filter(Boolean);
+    var wordlist = customList.length ? customList : DEFAULT_WORDLIST;
+
+    var concurrency = parseInt(els.concurrency.value, 10);
+    if (!concurrency || concurrency < 1) concurrency = 8;
+    if (concurrency > 20) concurrency = 20;
+
+    // reset state
+    state.running = true;
+    state.aborted = false;
+    state.results = [];
+    state.tested = 0;
+    state.total = wordlist.length;
+    state.startTime = Date.now();
+
+    els.startBtn.disabled = true;
+    els.stopBtn.disabled = false;
+    els.progressWrap.classList.add('active');
+    els.console.classList.add('active');
+    els.console.innerHTML = '';
+    els.statTarget.textContent = domain;
+    updateProgress();
+    renderStats();
+    renderTable();
+
+    log('$ target: ' + domain);
+    log('$ resolver: ' + (which === 'cloudflare' ? 'cloudflare-dns.com' : 'dns.google'));
+    log('$ candidates: ' + wordlist.length + '   types: ' + types.join(', '));
+    log('$ starting enumeration...');
+
+    state.timerHandle = setInterval(tick, 100);
+
+    var queue = wordlist.slice();
+
+    async function worker(){
+      while (queue.length && !state.aborted){
+        var word = queue.shift();
+        var fqdn = word + '.' + domain;
+        var hit = null;
+
+        for (var i = 0; i < types.length && !hit; i++){
+          var r = await queryOne(which, fqdn, types[i]);
+          if (r.found){ hit = { subdomain: fqdn, type: types[i], values: r.values }; }
+        }
+
+        state.tested++;
+        if (hit){
+          state.results.push(hit);
+          log('[+] ' + fqdn + '  ->  ' + hit.values.join(', '), 'hit');
+          renderTable();
+        }
+        updateProgress();
+        renderStats();
+      }
+    }
+
+    var workers = [];
+    for (var w = 0; w < concurrency; w++) workers.push(worker());
+    await Promise.all(workers);
+
+    clearInterval(state.timerHandle);
+    state.running = false;
+    els.startBtn.disabled = false;
+    els.stopBtn.disabled = true;
+
+    if (state.aborted){
+      log('$ scan stopped by user. ' + state.results.length + ' subdomain(s) found before stopping.');
+    } else {
+      log('$ scan complete. ' + state.results.length + ' subdomain(s) found out of ' + wordlist.length + ' candidates tested.');
+    }
+    renderTable();
+  }
+
+  els.startBtn.addEventListener('click', function(){
+    if (!state.running) runScan();
+  });
+
+  els.stopBtn.addEventListener('click', function(){
+    state.aborted = true;
+    els.stopBtn.disabled = true;
+  });
+
+  els.clearBtn.addEventListener('click', function(){
+    if (state.running) return;
+    state.results = [];
+    state.tested = 0;
+    state.total = 0;
+    els.statTarget.textContent = '—';
+    els.statTime.textContent = '0.0s';
+    els.progressWrap.classList.remove('active');
+    els.console.classList.remove('active');
+    els.console.innerHTML = '';
+    renderStats();
+    renderTable();
+  });
+
+  els.copyAllBtn.addEventListener('click', function(){
+    var text = state.results.map(function(r){ return r.subdomain; }).join('\n');
+    navigator.clipboard.writeText(text || '').then(function(){
+      els.copyAllBtn.textContent = 'Copied';
+      setTimeout(function(){ els.copyAllBtn.textContent = 'Copy list'; }, 1200);
+    });
+  });
+
+  function downloadBlob(filename, content, mime){
+    var blob = new Blob([content], { type: mime });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  els.exportCsvBtn.addEventListener('click', function(){
+    var lines = ['subdomain,type,value'];
+    state.results.forEach(function(r){
+      lines.push('"' + r.subdomain + '","' + r.type + '","' + r.values.join('; ') + '"');
+    });
+    downloadBlob('subdomains_' + (els.statTarget.textContent || 'scan') + '.csv', lines.join('\n'), 'text/csv');
+  });
+
+  els.exportJsonBtn.addEventListener('click', function(){
+    downloadBlob(
+      'subdomains_' + (els.statTarget.textContent || 'scan') + '.json',
+      JSON.stringify({ target: els.statTarget.textContent, results: state.results }, null, 2),
+      'application/json'
+    );
+  });
+
+  renderTable();
+})();
+</script>
+</body>
+</html>
