@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: #0A0F1A;
+  color: #E7ECF5;
+  font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: #7A5A22;
+  color: #0A0F1A;
+}
+
+/* visible keyboard focus, respects accessibility floor */
+:focus-visible {
+  outline: 2px solid #F2A93B;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* scrollbar, quiet and consistent with the theme */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #0A0F1A;
+}
+::-webkit-scrollbar-thumb {
+  background: #232E45;
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2E3B58;
+}
