@@ -1,80 +1,179 @@
-# Cybersecurity and Computer Networking Projects
+# 🔐 Cybersecurity & Computer Networking Projects
 
-## Overview
+A collection of academic projects and practical implementations in **cybersecurity, computer networking, network diagnostics, security assessment, and secure application development**.
 
-This repository contains academic assignments and practical projects developed as part of coursework in cybersecurity and computer networking. It demonstrates the application of networking concepts, network diagnostics, host discovery, and security principles through hands-on implementation.
+This repository brings together hands-on projects demonstrating network analysis, reconnaissance, security tools, authentication concepts, and multi-component application architecture.
 
-## Projects
+---
+
+## 📌 Projects Overview
 
 ### 1. Traceroute Visualizer
+**Folder:** `traceroute-visualizer/`
 
-**Description:**  
-A Python-based web application that visualizes the network path between a source computer and a destination host. It presents hop-by-hop information, IP addresses, response times, and probe statuses to help users understand network routing and identify potential delays.
+A Python-based web application that visualizes traceroute results to help understand network paths and routing behavior.
 
-**Key Features**
-- Destination domain or IP address input
-- Configurable maximum number of hops
-- Adjustable probe timeout
-- Hop-by-hop route visualization
-- IP address and latency display
-- Probe status reporting
+**Highlights**
+- Traceroute visualization and network diagnostics
+- Presentation of hop information and latency
+- Interactive interface built with Streamlit
 
-**Technology Stack:** Python, Streamlit
+**Technologies:** Python, Streamlit
 
-**Project Directory:** `traceroute-visualizer/`
+---
 
 ### 2. Network IP Range Scanner
+**Folder:** `network-ip-range-scanner/`
 
-**Description:**  
-A web-based application designed to demonstrate IP range scanning and host discovery. It provides an interface for entering network ranges and viewing scan results to understand host availability within a network.
+A web-based tool for working with IP ranges and exploring network addresses.
 
-**Key Features**
-- IP range input
-- Host discovery
-- Active and inactive host identification, where supported by the implementation
-- Scan results visualization
-- Input validation and error handling
+**Highlights**
+- Web-based interface for IP range scanning
+- Interactive network utility interface
+- Frontend application built with React and Vite
 
-**Technology Stack:** React, Vite, JavaScript, and the libraries specified in `package.json`
+**Technologies:** React, Vite, JavaScript, Tailwind CSS
 
-**Project Directory:** `network-ip-range-scanner/`
+---
 
-## Repository Structure
+### 3. Application Security Toolkit
+**Folder:** `application-security-toolkit/`
+
+A browser-based application security project that brings security-related functionality together in an interactive interface.
+
+**Highlights**
+- Interactive security toolkit interface
+- Component-based frontend structure
+- Organized project resources and supporting data
+
+**Technologies:** React, Vite, JavaScript, Tailwind CSS
+
+---
+
+### 4. Subdomain Enumeration
+**Folder:** `subdomain-enumeration/`
+
+A browser-based reconnaissance tool that checks candidate subdomains using public DNS-over-HTTPS resolvers.
+
+**Highlights**
+- Google and Cloudflare DNS resolver options
+- Built-in and custom wordlists
+- Configurable concurrency and DNS record types
+- Live scan progress and results
+- CSV and JSON result export
+
+**Technologies:** HTML, CSS, JavaScript, DNS-over-HTTPS
+
+**Responsible use:** Only use this tool on domains you own or are explicitly authorized to assess.
+
+---
+
+### 5. IP Port Scanner
+**Folder:** `ip-port-scanner/`
+
+A web-based networking project focused on IP and port scanning functionality.
+
+**Highlights**
+- Interactive scanning interface
+- Frontend application structure
+- Vite-based development environment
+
+**Technologies:** JavaScript, React, Vite
+
+**Responsible use:** Only scan systems and networks you own or have permission to test.
+
+---
+
+### 6. Cybersecurity Authentication Toolkit
+**Folder:** `cybersecurity-authentication-toolkit/`
+
+A browser-based project focused on cybersecurity authentication concepts and related functionality.
+
+**Highlights**
+- Interactive web interface
+- Supporting screenshots and project documentation
+- Organized standalone project structure
+
+**Technologies:** HTML, CSS, JavaScript
+
+---
+
+### 7. Secure Multi-Domain Payment Company
+**Folder:** `secure-multi-domain-payment-company/`
+
+A multi-component application project organized into website, payment, customer, administration, API, and monitoring components.
+
+**Highlights**
+- Main website
+- Payment application
+- Customer portal
+- Administration portal
+- API service
+- Monitoring component
+
+**Technologies:** Refer to the project's README and component configuration files for the specific technologies used.
+
+---
+
+## 🛠️ Repository Structure
 
 ```text
 Cybersecurity-Projects/
-├── README.md
+│
 ├── traceroute-visualizer/
-│   ├── app.py
-│   ├── requirements.txt
-│   └── README.md
-└── network-ip-range-scanner/
-    ├── src/
-    ├── index.html
-    ├── package.json
-    ├── package-lock.json
-    └── README.md
+├── network-ip-range-scanner/
+├── application-security-toolkit/
+├── subdomain-enumeration/
+├── ip-port-scanner/
+├── cybersecurity-authentication-toolkit/
+├── secure-multi-domain-payment-company/
+│
+└── README.md
 ```
 
-*Additional configuration and supporting files are included in the respective project directories.*
+Each project is maintained in its own directory with its source files and available documentation.
 
-## Learning Outcomes
+---
 
-Through these projects, the repository explores:
+## 🚀 Getting Started
 
-- Network routing and traceroute analysis
-- IP addressing and host discovery
-- Network latency and response-time interpretation
+1. Clone or download this repository.
+2. Open the folder for the project you want to explore.
+3. Read that project's README for setup instructions and requirements.
+4. Install the necessary dependencies, if applicable.
+5. Run the application using the instructions provided by the individual project.
+
+**Note:** Setup commands and requirements may differ between projects.
+
+---
+
+## 🎯 Learning Objectives
+
+These projects provide practical exposure to:
+
+- Computer networking and network diagnostics
+- IP addressing and port-scanning concepts
+- DNS and subdomain enumeration
+- Application security concepts
+- Authentication-related functionality
 - Web application development
-- Input validation and error handling
-- Practical implementation of computer networking concepts
+- Multi-component application architecture
+- Security testing and responsible reconnaissance
 
-## Usage
+---
 
-Each project has its own directory and README file containing project-specific information and execution instructions.
+## ⚠️ Ethical Use and Disclaimer
 
-Refer to the individual project documentation for setup requirements and instructions.
+These projects are intended for educational purposes and authorized testing.
 
-## Academic Purpose
+- Use scanning and reconnaissance tools only on systems and domains you own or have explicit permission to assess.
+- Follow applicable laws, institutional policies, and responsible security practices.
+- Do not use these projects to access, disrupt, or test unauthorized systems.
 
-This repository is maintained for academic coursework, practical implementation, and demonstration of cybersecurity and computer networking concepts.
+---
+
+## 👩‍💻 About This Repository
+
+This repository documents hands-on academic work and practical exploration of cybersecurity and computer networking concepts.
+
+Each project demonstrates a different aspect of applying technical concepts through software development and experimentation.
